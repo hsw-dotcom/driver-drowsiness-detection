@@ -1,0 +1,11 @@
+# Runtime recordings and potential sensitive credentials
+*.wav
+*.mp3
+*.mp4
+*.json
+*.dat
+__pycache__/
+*.py[cod]
+.env
+venv/
+.venv/

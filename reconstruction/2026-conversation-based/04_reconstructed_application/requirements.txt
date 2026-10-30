@@ -1,0 +1,10 @@
+# Raspberry Pi OS Picamera2 should normally be installed through apt, not pip.
+# sudo apt install python3-picamera2 python3-opencv python3-dlib python3-pyaudio
+# Python dependencies for new integration; install matching RPi OS packages if possible.
+# Minimum Python 3.10 (tested without hardware only).
+numpy
+scipy
+sounddevice
+google-cloud-texttospeech
+google-cloud-speech
+# playsound==1.2.2   # only if config sound_backend=playsound

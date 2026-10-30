@@ -1,0 +1,5 @@
+﻿filename,path,size_bytes,sha256,classification,description
+test_v2.py,00_verified_originals/vision_detection/test_v2.py,4785,48f78315d7e8c277ba2067aa62cbada0e71df52b78f6b0274fa84390cd79c02f,verified-original-unmodified,Picamera2/dlib E.A.R. and eye-level detection prototype
+111.py,00_verified_originals/audio_recording/111.py,1409,2235532500ee7a0d3cf57d93506d4fb100b35098c9aac67c4c763525ca81a833,verified-original-unmodified,PyAudio microphone recording prototype
+222.py,00_verified_originals/tts_stt_math_quiz/222.py,3720,6eb93b381db3a82a9ee6584d58bf38331924055df1ea6cd0cf6cdaa202a86225,verified-original-unmodified,Google Cloud TTS/STT math question prototype
+333.py,00_verified_originals/streaming_stt/333.py,3274,b0e927101a144232ebb268690435143dc83637bd9eaefb047f792e6c90f11c5f,verified-original-unmodified,Google Cloud streaming speech recognition prototype

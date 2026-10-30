@@ -1,0 +1,4 @@
+# Pip-installable dependencies for reference camera_demo.py; Picamera2/dlib are often
+# best installed from Raspberry Pi OS packages (see EXECUTION.md).
+numpy
+opencv-python
