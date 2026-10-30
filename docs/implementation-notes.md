@@ -17,4 +17,4 @@
 
 ## Attribution and evidence
 
-These are two groups of historical source files recovered from the user's backups. No file in this repo establishes an integration between the eye detection scripts and voice scripts. No present-day live test was performed.
+These are two groups of historical source files recovered from the user's backups. The **code currently in this repository** does not contain the later integrated program. However, additional 2023 vehicle-test recordings show camera detection and a `Listening...` interface, with a separately opened `decibel.py` measuring audio levels and a later `test.py` calling a warning WAV. This is evidence of integration attempts and on-device testing, not proof of complete correct/incorrect-answer handling or all three warning levels. See [vehicle-test evidence](vehicle-test-evidence-2023.md). No present-day live test was performed.
