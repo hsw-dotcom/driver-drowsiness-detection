@@ -34,6 +34,7 @@ class FrameResult:
     baseline_ear: Optional[float] = None
     baseline_eye_y: Optional[float] = None
     closed_frames: int = 0
+    head_down_frames: int = 0
 
 class DrowsinessLogic:
     def __init__(self, calibration_seconds=3., ear_ratio=.8, closed_frames=10,
@@ -49,15 +50,18 @@ class DrowsinessLogic:
         self.baseline_ear=None
         self.baseline_eye_y=None
         self.closed_count=0
+        self.head_down_count=0
         self.cooldown_until=float('-inf')
 
     def _reset_count(self):
         self.closed_count=0
+        self.head_down_count=0
 
     def finish_alert(self, now: float):
         """Called AFTER blocking audio/quiz/loudness. Prevent immediate retriggers."""
         self.cooldown_until=now+self.cooldown_seconds
         self.closed_count=0
+        self.head_down_count=0
 
     def update(self, now:float, ear:Optional[float], eye_y:Optional[float]):
         if self.started_at is None:
@@ -70,18 +74,28 @@ class DrowsinessLogic:
                 return FrameResult('calibrating','waiting-for-baseline',ear=ear)
             self.baseline_ear=sum(self.ears)/len(self.ears)
             self.baseline_eye_y=sum(self.eye_levels)/len(self.eye_levels)
-        kw=dict(ear=ear,baseline_ear=self.baseline_ear,baseline_eye_y=self.baseline_eye_y,closed_frames=self.closed_count)
+        kw=dict(ear=ear,baseline_ear=self.baseline_ear,baseline_eye_y=self.baseline_eye_y,
+                closed_frames=self.closed_count,head_down_frames=self.head_down_count)
         if now<self.cooldown_until:
             return FrameResult('cooldown','post-warning-ignore',**kw)
         if ear is None or eye_y is None:
             self._reset_count()
             # No face does not establish a new detection.
-            return FrameResult('no-face','face-not-detected',**{**kw,'closed_frames':0})
+            return FrameResult('no-face','face-not-detected',**{**kw,'closed_frames':0,'head_down_frames':0})
         eye_closed=ear<=self.baseline_ear*self.ear_ratio
         head_down=eye_y>self.baseline_eye_y+self.eye_offset_px
         self.closed_count=self.closed_count+1 if eye_closed else 0
-        abnormal=self.closed_count>=self.closed_frame_threshold or head_down
+        self.head_down_count=self.head_down_count+1 if head_down else 0
+        kw={**kw, 'closed_frames':self.closed_count,
+            'head_down_frames':self.head_down_count}
+        # User confirms BOTH the immediate 20px drop route and the 10-frame
+        # persistence check were present. At the same 20px threshold, the
+        # instantaneous branch already triggers first; the persistence count
+        # remains observable but is logically subsumed by the immediate one.
+        persistent_head_drop=self.head_down_count>=self.closed_frame_threshold
+        abnormal=(self.closed_count>=self.closed_frame_threshold
+                  or head_down or persistent_head_drop)
         if not abnormal:
-                return FrameResult('normal','normal',**{**kw,'closed_frames':self.closed_count})
+            return FrameResult('normal','normal',**kw)
         reason='closed-eyes' if self.closed_count>=self.closed_frame_threshold else 'head-or-eye-drop'
-        return FrameResult('alert',reason,trigger=True,**{**kw,'closed_frames':self.closed_count})
+        return FrameResult('alert',reason,trigger=True,**kw)

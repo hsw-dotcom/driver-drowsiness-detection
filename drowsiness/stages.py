@@ -41,6 +41,9 @@ class WarningStages:
         stage = self.warning_count % 3 + 1
         self.busy = True
         try:
+            # 2023 vehicle-test video shows playy("detect.wav") after detection.
+            # User confirmed the common detection alarm precedes ALL stages.
+            self.audio.play('detect.wav')
             if stage == 1:
                 self._sequence(('wa.wav', 'warning.wav'))
                 outcome = 'warning-audio'

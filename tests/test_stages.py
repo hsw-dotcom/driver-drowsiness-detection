@@ -34,8 +34,10 @@ class StageTests(unittest.TestCase):
         self.assertEqual(ctrl.on_alert().outcome, 'volume-response')
         self.assertEqual(ctrl.warning_count, 3)
         self.assertEqual(ctrl.on_alert().stage, 1)
-        self.assertEqual(sound.clips, ['wa.wav', 'warning.wav', 'da.wav', 'danger.wav',
-                                      'da.wav', 'decibel.wav', 'wa.wav', 'warning.wav'])
+        self.assertEqual(sound.clips, ['detect.wav', 'wa.wav', 'warning.wav',
+                                      'detect.wav', 'da.wav', 'danger.wav',
+                                      'detect.wav', 'da.wav', 'decibel.wav',
+                                      'detect.wav', 'wa.wav', 'warning.wav'])
         self.assertEqual(len(quiz), 1)
         self.assertEqual(len(loud), 1)
         self.assertEqual(sleeps, [4, 4, 4, 4, 4, 4])
@@ -92,6 +94,25 @@ class StageTests(unittest.TestCase):
         self.assertFalse(ctrl.busy)
         self.assertEqual(ctrl.warning_count, 1)
         self.assertEqual(ctrl.on_alert().stage, 2)
+
+    def test_common_detect_alarm_precedes_each_stage(self):
+        sound=FakeAudio()
+        ctrl=WarningStages(sound,Config(),
+                           lambda:QuizResult('q',2,'2',True),lambda:True,
+                           sleep_fn=lambda _:None)
+        for stage in (1,2,3,1):
+            old_len=len(sound.clips)
+            self.assertEqual(ctrl.on_alert().stage,stage)
+            self.assertEqual(sound.clips[old_len],'detect.wav')
+
+    def test_quiz_voice_prompt_repeated_after_wrong_answer(self):
+        seen=[]
+        answers=iter(['4','', '5'])
+        def recognize(question):
+            seen.append(question)
+            return next(answers)
+        self.assertTrue(solve_question('2 + 3',5,recognize).correct)
+        self.assertEqual(seen,['2 + 3']*3)
 
     def test_busy_reentrance(self):
         ctrl = WarningStages(FakeAudio(), Config(), lambda: None, lambda: False)

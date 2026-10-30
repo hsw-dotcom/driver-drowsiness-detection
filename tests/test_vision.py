@@ -31,6 +31,24 @@ class TestVision(unittest.TestCase):
         d=self.init_logic()
         self.assertFalse(d.update(4,.3,120).trigger)
         self.assertTrue(d.update(4.1,.3,121).trigger)
+    def test_immediate_head_drop_and_persistence_are_both_recorded(self):
+        d=self.init_logic()
+        for frame in range(1,11):
+            state=d.update(3+frame*.1,.3,125)
+            self.assertTrue(state.trigger)  # immediate drop remains effective
+            self.assertEqual(state.head_down_frames,frame)  # 10-frame path tracked
+        self.assertEqual(state.head_down_frames,10)
+        d.finish_alert(4.05)
+        self.assertEqual(d.head_down_count,0)
+        normal=d.update(5.10,.3,100)
+        self.assertEqual(normal.head_down_frames,0)
+
+    def test_no_face_resets_head_down_counter(self):
+        d=self.init_logic()
+        self.assertEqual(d.update(4,.3,125).head_down_frames,1)
+        self.assertEqual(d.update(4.2,None,None).head_down_frames,0)
+        self.assertEqual(d.update(4.3,.3,125).head_down_frames,1)
+
     def test_no_face_reset(self):
         d=self.init_logic()
         for i in range(5):d.update(4+i*.1,.1,100)

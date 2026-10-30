@@ -41,7 +41,7 @@ class ConversationBackedTests(unittest.TestCase):
         observations = iter([49.0, 71.0])
         self.assertTrue(wait_for_loud_reaction(
             audio, measure_fn=lambda seconds, rate, chunk: next(observations)))
-        self.assertEqual(audio.clips, ['da.wav', 'success.wav'])
+        self.assertEqual(audio.clips, ['da.wav', 'decibel.wav', 'success.wav'])
 
     def test_feedback_wav_paths_match_original_quiz(self):
         self.assertEqual(feedback_clip('15', True), 'result1.wav')

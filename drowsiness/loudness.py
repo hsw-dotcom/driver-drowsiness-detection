@@ -82,4 +82,7 @@ def wait_for_loud_reaction(audio, threshold=70., seconds=5., rate=44100,
         if level > threshold:
             audio.play('success.wav')  # observed in the 2023-11-22 decibel.py
             return True
-        audio.play('da.wav')  # repeat prompt on insufficient volume
+        # Repeat BOTH the warning cue and the explanatory guidance.
+        # The user confirmed that guidance repeats after each insufficient read.
+        audio.play('da.wav')
+        audio.play('decibel.wav')
