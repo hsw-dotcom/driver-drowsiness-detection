@@ -79,3 +79,7 @@ python3 main.py --demo
 ## 의존성에 대한 기록
 
 실장에 필요한 Picamera2, OpenCV, dlib predictor 데이터, 마이크/스피커, 원본 WAV, Google Cloud 인증은 별도로 필요하며 저장소에 포함하지 않았습니다. 이 저장소는 **하드웨어 없는 코드 복원**을 목적으로 합니다. 실제 통합 실행은 검증하지 않았습니다.
+
+## 자동 오프라인 검증
+
+[GitHub Actions — Offline reconstructed logic tests](https://github.com/hsw-dotcom/driver-drowsiness-detection/actions/workflows/offline-checks.yml)는 Python 단위 테스트 및 모의 3단계 실행을 자동화합니다. **2023년 실차 시스템의 동작 결과나 실제 안전성·성능 검증과는 별개**입니다.
