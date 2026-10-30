@@ -18,3 +18,8 @@
 ## Attribution and evidence
 
 These are two groups of historical source files recovered from the user's backups. The **preserved 2023 original source files under `src/`** do not contain the later integrated program; `reconstruction/app/` is a separate 2026 inferred reconstruction, not a recovered original. However, additional 2023 vehicle-test recordings show camera detection and a `Listening...` interface, with a separately opened `decibel.py` measuring audio levels and a later `test.py` calling a warning WAV. This is evidence of integration attempts and on-device testing, not proof of complete correct/incorrect-answer handling or all three warning levels. See [vehicle-test evidence](vehicle-test-evidence-2023.md). No present-day live test was performed.
+
+
+## 2026-10-31: Final-presentation-first reconstruction correction
+
+The final presentation flow chart is authoritative for the three warning stages and retry decisions. User-confirmed facts: eye EAR/eye position determine drowsiness, regardless of face *shape*; observed operation with glasses and sunglasses; ~10s microphone answer window; repeat the same question until correct, repeat volume checks until sufficient, and cycle stage 3 to stage 1. The earlier max-three volume attempts and post-alert normal-frame latch were speculative and removed. The 10s audio capture must not be confused with a Google Cloud network request timeout. Historic `src/` source files remain untouched. See `reconstruction/app/docs/TRACEABILITY.md` for distinctions between slide evidence, original code, user account, and implementation adapters. Twenty-five offline logic tests passed; this is not a real-device verification.

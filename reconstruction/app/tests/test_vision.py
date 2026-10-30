@@ -3,7 +3,7 @@ from drowsiness.vision import DrowsinessLogic,ear_for_eye
 
 class TestVision(unittest.TestCase):
     def init_logic(self):
-        d=DrowsinessLogic(calibration_seconds=3,min_calibration_samples=3,closed_frames=10)
+        d=DrowsinessLogic(calibration_seconds=3,closed_frames=10)
         for t in (0,1,2): self.assertEqual(d.update(t,.3,100).status,'calibrating')
         self.assertEqual(d.update(3,.3,100).status,'normal')
         return d
@@ -36,18 +36,22 @@ class TestVision(unittest.TestCase):
         for i in range(5):d.update(4+i*.1,.1,100)
         self.assertEqual(d.update(5,None,None).status,'no-face')
         self.assertEqual(d.update(5.1,.1,100).closed_frames,1)
-    def test_latch_no_per_frame_retriggers(self):
+    def test_unconfirmed_rearm_not_required(self):
         d=self.init_logic()
         self.assertTrue(d.update(4,.3,125).trigger)
-        self.assertFalse(d.update(4.1,.3,125).trigger)
-        self.assertEqual(d.update(4.2,.3,100).status,'normal')
-        self.assertTrue(d.update(4.3,.3,125).trigger)
+        d.finish_alert(4.1)
+        self.assertEqual(d.update(5.0,.3,125).status,'cooldown')
+        # Original conversation specified 1-second ignore, not a separate
+        # normal-frame rearm requirement.
+        self.assertTrue(d.update(5.11,.3,125).trigger)
     def test_post_warning_cooldown(self):
         d=self.init_logic(); d.update(4,.3,125)
         d.finish_alert(5)
         self.assertEqual(d.update(5.9,.3,125).status,'cooldown')
-        self.assertFalse(d.update(6,.3,125).trigger)
-        self.assertEqual(d.update(6.1,.3,100).status,'normal')
-        self.assertTrue(d.update(6.2,.3,125).trigger)
+        self.assertTrue(d.update(6,.3,125).trigger)
+        d.finish_alert(6.05)
+        self.assertEqual(d.update(6.1,.3,125).status,'cooldown')
+        self.assertEqual(d.update(7.06,.3,100).status,'normal')
+        self.assertTrue(d.update(7.1,.3,125).trigger)
 
 if __name__=='__main__':unittest.main()

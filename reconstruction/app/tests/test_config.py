@@ -9,6 +9,9 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(c.closed_frames,10)
         self.assertEqual(c.pixel_format,'XBGR8888')
         self.assertEqual(c.loudness_threshold,70)
+        self.assertEqual(c.quiz_record_seconds,10)
+        self.assertEqual(c.sound_backend,'playsound')
+        self.assertFalse(hasattr(c,'loudness_max_attempts'))
     def test_missing(self):
         with self.assertRaises(FileNotFoundError):Config.load(Path('/never_here_abc.ini'))
 if __name__=='__main__':unittest.main()

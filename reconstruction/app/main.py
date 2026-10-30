@@ -29,20 +29,20 @@ def make_stages(cfg,simulation):
     return WarningStages(audio,cfg,
         quiz_fn=lambda:run_quiz(cfg.quiz_record_seconds,cfg.quiz_backend,dry_run=simulation),
         loudness_fn=lambda:wait_for_loud_reaction(audio,cfg.loudness_threshold,cfg.loudness_seconds,
-                  cfg.loudness_rate,cfg.loudness_chunk,cfg.loudness_max_attempts,dry_run=simulation),
+                  cfg.loudness_rate,cfg.loudness_chunk,dry_run=simulation),
         sleep_fn=(lambda seconds:None) if simulation else time.sleep)
 
 def make_logic(cfg):
     return DrowsinessLogic(cfg.calibration_seconds,cfg.ear_ratio,
-        cfg.closed_frames,cfg.eye_offset_px,cfg.cooldown_seconds,cfg.min_calibration_samples)
+        cfg.closed_frames,cfg.eye_offset_px,cfg.cooldown_seconds)
 
 def demo(cfg):
     logic=make_logic(cfg)
     stages=make_stages(cfg,True)
     now=0.0
-    for _ in range(max(3,cfg.min_calibration_samples)):
+    for _ in range(3):
         print(f'[demo calibration] {logic.update(now,.3,200).status}')
-        now+=max(.1,cfg.calibration_seconds/max(3,cfg.min_calibration_samples))
+        now+=max(.1,cfg.calibration_seconds/3)
     now=max(now,cfg.calibration_seconds+.1)
     for stage in range(3):
         for frame in range(cfg.closed_frames):
@@ -56,7 +56,7 @@ def demo(cfg):
         # Require recovery + cooldown before next event.
         now+=cfg.cooldown_seconds+.1
         print('[demo recovery]',logic.update(now,.3,200).status)
-    print('[demo finished] 3 alert stages; next event will return to stage 1')
+    print('[demo finished] three completed stages -> next alert is stage 1')
 
 def run_real(cfg,no_display):
     import cv2
@@ -81,7 +81,8 @@ def run_real(cfg,no_display):
                 metrics=None
                 ear=eye_y=None
                 if faces:
-                    # Prefer largest visible face; original selected all faces.
+                    # Face localization finds eye landmarks; face shape is not a drowsiness criterion.
+                    # Largest-face selection is a reconstruction adapter, not original 2023 logic.
                     face=max(faces,key=lambda r:r.width()*r.height())
                     metrics=eye_metrics(predictor(gray,face))
                     ear,eye_y=metrics[:2]

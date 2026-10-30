@@ -1,6 +1,6 @@
 import unittest
 from array import array
-from drowsiness.loudness import rms_int16_bytes,raw_pcm_db,measure_average_db
+from drowsiness.loudness import rms_int16_bytes,raw_pcm_db,measure_average_db,wait_for_loud_reaction
 
 class FakeStream:
     def __init__(self,value): self.value=value;self.closed=False
@@ -18,6 +18,19 @@ class TestLoudness(unittest.TestCase):
         self.assertLess(raw_pcm_db(0),0)
     def test_malformed_pcm(self):
         with self.assertRaises(ValueError):rms_int16_bytes(b'1')
+    def test_volume_repeats_past_three_attempts(self):
+        attempts=[]
+        class Speaker:
+            def __init__(self):self.clips=[]
+            def play(self,name):self.clips.append(name)
+        speaker=Speaker()
+        def read(seconds,rate,chunk):
+            attempts.append((seconds,rate,chunk))
+            return 80 if len(attempts)>=7 else 50
+        self.assertTrue(wait_for_loud_reaction(speaker,measure_fn=read))
+        self.assertEqual(len(attempts),7)
+        self.assertEqual(speaker.clips,['da.wav']*6)
+
     def test_fake_microphone(self):
         self.assertAlmostEqual(measure_average_db(seconds=.01,rate=100,chunk=1,stream_factory=lambda:FakeStream(4000)),raw_pcm_db(4000))
 

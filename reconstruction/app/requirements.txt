@@ -7,4 +7,4 @@ scipy
 sounddevice
 google-cloud-texttospeech
 google-cloud-speech
-# playsound==1.2.2   # only if config sound_backend=playsound
+playsound==1.2.2  # historical playback library
