@@ -1,0 +1,15 @@
+# Private keys, project captures and generated audio
+.env
+.env.*
+!.env.example
+*.json
+*.pem
+*.key
+*.wav
+*.mp3
+*.mp4
+*.jpg
+*.png
+*.dat
+__pycache__/
+*.pyc
