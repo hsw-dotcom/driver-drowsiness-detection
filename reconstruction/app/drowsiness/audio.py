@@ -1,7 +1,6 @@
 """Sequential alerts: camera stays active but analysis pauses during reactions."""
 from pathlib import Path
 import subprocess
-import time
 
 class Audio:
     def __init__(self,audio_dir:Path,backend='aplay',dry_run=False):
@@ -29,9 +28,3 @@ class Audio:
                 print(f'[audio playback error] {exc}')
         else:
             raise ValueError('Unknown audio backend')
-
-    def sequence(self,names,delay_seconds:float):
-        for index,name in enumerate(names):
-            if index and delay_seconds:
-                time.sleep(delay_seconds if not self.dry_run else 0)
-            self.play(name)

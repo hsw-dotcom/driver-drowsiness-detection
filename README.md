@@ -36,13 +36,14 @@ Python, Raspberry Pi OS, Raspberry Pi Camera Module, Picamera2, OpenCV, dlib, Sc
 
 [구현 검증 및 한계](docs/implementation-notes.md) · [차량 시험 자료](docs/vehicle-test-evidence-2023.md) · [보안/출처](docs/security.md)
 
-## 대화 기반 통합 재구성본 (2026-10-31)
+## 통합 코드 복원본 (2026-10-31 정리)
 
-2023년 개발 당시의 문답과 확보된 코드에 근거해 작성한 **교육·복원 목적의 추정 통합 구현**을 별도 디렉터리에 추가했습니다. 이 디렉터리는 2023년 최종 실행 원본이 아니며, 기존 `src/` 기록을 수정하거나 대체하지 않습니다.
+**하드웨어 없이 코드 구조와 로직을 복원하는 작업**입니다. 역사적 원본 실험 코드는 위의 `src/`에 그대로 보존하며, **현재 확인할 통합 진입점은 하나**입니다.
 
-- [재구성 자료 전체 보기](reconstruction/2026-conversation-based/README.md)
-- [통합 실행 방법 및 제한](reconstruction/2026-conversation-based/04_reconstructed_application/README.md)
-- [기능별 대화 근거·추정 구분](reconstruction/2026-conversation-based/04_reconstructed_application/docs/TRACEABILITY.md)
-- [검증된 원본 4개 복사본](reconstruction/2026-conversation-based/00_verified_originals/README.md) (중복 보관; 역사적 원본 관리는 계속 `src/` 참조)
+- [단일 통합 구현: reconstruction/app/](reconstruction/app/README.md)
+- [기능별 출처·추정 및 원본 역할 구분](reconstruction/app/docs/TRACEABILITY.md)
+- [중복 정리 원칙과 폴더 안내](reconstruction/README.md)
 
-통합본에는 초기 기준 측정(3초), EAR 기반 연속 눈 감김, 눈높이 변화 감지, 1·2·3단계 경고 및 음성 문제/음량 확인 경로, 예외 처리와 재감지 방지 로직이 포함됩니다. **하드웨어가 없는 환경에서 Python 단위 테스트 26개와 경고 단계 시뮬레이션을 통과**했으며, Raspberry Pi·모델·마이크·스피커 연결 및 실차 시험은 수행하지 않았습니다. 기존 현장 시험의 성공을 새 코드에 소급해 주장하지 않습니다.
+이전에 생성한 `reconstruction/2026-conversation-based/`의 **원본 중복 복사본·옛 감지 참고 구현·음성 기능 호출 래퍼·실기용 systemd 예시·자산 빈 폴더**는 정리했습니다. 보존해야 할 기존 `src/` 원본 10개와 `docs/`는 삭제하거나 변경하지 않았습니다(아래 별도 현황 문구 수정 제외).
+
+재구성 프로그램은 EAR·눈높이 변화, 3단계 경고, 수학 문제 TTS/STT, RMS 기반 음량 확인을 각 전담 모듈에서 한 번만 구현합니다. **유지 중인 코드의 21개 단위 테스트와 하드웨어 없는 3단계 시뮬레이션이 통과**했습니다. 물리적 카메라·마이크·스피커 및 실차 동작을 검증했다는 뜻은 아닙니다.
