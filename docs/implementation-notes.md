@@ -1,0 +1,20 @@
+# Source-based implementation findings
+
+## Eye detection prototypes
+
+- `test.py` and `test_v2.py` use `Picamera2`, `dlib.get_frontal_face_detector()`, 68-landmark shape prediction, the six points for each eye, and EAR = (A+B)/(2*C).
+- `test.py`: calibration via ~300 accepted frames; counts low EAR frames and checks eye-position displacement before printing `detected` on the image.
+- `test_v2.py`: calibration for 30 seconds, average EAR and eye y-position; `closed_count >= 10` or `eye_level > danger_level` triggers the on-screen `detected` text.
+- The code draws lines and displays the camera image. It does **not** play a warning or call the voice module. It also refers to an undefined `cap` at program termination.
+- Neither model accuracy nor on-device inference speed has a verified numerical result. Reproduction currently impossible without Pi/hardware and landmark file configuration.
+
+## Voice interaction experiments
+
+- `test1.py` synthesizes math questions via Google Cloud TTS, opens a streaming STT microphone input, and compares the recognized text with an answer; WAV sounds for correct/incorrect/non-numeric responses were stored in the original archive but are not shared here.
+- Other source files test gTTS, microphone capture, transcription, and Google STT example flow.
+- Observed concerns: interim STT hypotheses are appended rather than replaced, the numeric-only extraction is not used for return, test versions have potentially blocking loops and require credentials/network access.
+- A development video shows problem generation and error/restart behavior; it does not conclusively establish integrated end-to-end voice interaction.
+
+## Attribution and evidence
+
+These are two groups of historical source files recovered from the user's backups. No file in this repo establishes an integration between the eye detection scripts and voice scripts. No present-day live test was performed.
