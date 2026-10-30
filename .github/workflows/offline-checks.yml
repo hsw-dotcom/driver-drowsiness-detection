@@ -1,0 +1,15 @@
+name: Offline reconstructed logic tests
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  offline-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pure-Python unit tests (no camera, microphone or network)
+        run: python3 -B -m unittest discover -s tests -v
+      - name: Synthetic three-stage simulation (NOT vehicle validation)
+        run: python3 -B main.py --demo
