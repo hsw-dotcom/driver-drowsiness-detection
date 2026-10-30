@@ -1,38 +1,41 @@
-# 졸음운전 예방 카메라 — 원본 우선 코드 보존
+# 졸음운전 예방 카메라 — 최종 발표 기준 통합 코드
 
-**최종 발표자료를 기능/흐름의 최상위 기준으로, 2023년 확보한 소스 파일을 구현 근거로 사용합니다.** 2026년 추정 재구성은 원본이 없는 부분에만 최소한으로 둡니다. 하드웨어를 이용한 재현이나 실제 차량 안전성을 검증하는 작업이 아닙니다.
+**현재 `main` 브랜치의 유일한 프로젝트 코드 버전입니다.** 2023년 최종 발표의 기능·분기와 확보된 2023년 원본 소스를 바탕으로, 최종 통합 프로그램의 미확보 부분을 연결하여 작성한 **2026년 복원본**입니다. **2023년 당시 최종 실행 원문과 동일하다는 뜻은 아닙니다.**
 
-## 무엇이 실제 원본인가?
+## 파일 구성
 
-**`src/` 디렉터리의 Python 파일 10개만 2023년 보존 원본**입니다. 2023년 실험의 여러 시점과 목적을 반영하기 때문에 이름과 기능이 유사한 파일도 그대로 보존합니다. 기존 파일 내용은 수정하지 않았습니다.
+- `main.py` — 유일한 통합 진입점, 카메라 감지 → 경고 → 응답 → 영상 재검사
+- `drowsiness/vision.py` — 원본 `test.py`/`test_v2.py`의 68점 눈 랜드마크·EAR·눈높이 임계값 반영
+- `drowsiness/camera.py` — Picamera2 카메라, 컬러 프레임 처리
+- `drowsiness/stages.py` — 최종 발표의 1→2→3→1 경고 및 반복 분기
+- `drowsiness/quiz.py` — 원본 `test1.py`/`222.py` 기반 산수 문제, 한국어 Google TTS/STT
+- `drowsiness/loudness.py` — 당시 대화 기반 RMS 음량식(원본 `decibel.py`는 미확보)
+- `drowsiness/audio.py` — 순차 경고음 재생 (WAV 원본 미포함)
+- `drowsiness/config.py`, `config.ini` — 개발 대화 기준 설정
+- `tests/` — 하드웨어 없이 검증하는 로직 테스트
+- `docs/PROVENANCE.md` — 원본·발표·복원 경계와 실증하지 못한 내용
 
-- `src/eye_detection/test.py`, `test_v2.py`, `test3.py`: Picamera2/OpenCV/dlib 기반 얼굴·눈 랜드마크, EAR/눈 위치 계산, 카메라 시험.
-- `src/voice_experiments/test1.py`, `111.py`, `222.py`, `333.py`, `app.py`, `stt_test1.py`, `test2.py`: 녹음, 수학 문제, Google TTS/STT 등 음성 기능 실험.
+중복된 `test.py`, `test_v2.py`, `111.py`, `222.py`, `333.py` 등 **오래된 실험 코드는 현재 브랜치에서 제거**했습니다. 기존 코드는 [보존 브랜치](https://github.com/hsw-dotcom/driver-drowsiness-detection/tree/archive/pre-final-cleanup/src) 또는 Git 이력에서 열람할 수 있습니다. 새 코드는 원본을 복사해 여러 위치에 중복 저장하지 않습니다.
 
-**원본이 해결하는 역할은 다시 작성하지 않았습니다.** 이전 `reconstruction/app/`의 비전, 음성, 카메라, 오디오 재구현 및 종합 `main.py`는 기본 브랜치에서 제외했습니다.
+## 발표 자료 기준 기능
 
-## 원본만으로 완성 가능한가?
+1. 눈의 종횡비(EAR)와 눈높이로 졸음을 판단합니다. dlib 얼굴 검출은 눈 랜드마크 위치 탐색용으로만 쓰며 **얼굴형으로 졸음을 분류하지 않습니다**.
+2. 초기 EAR·눈높이 측정 후, 평균 EAR×0.8 이하 상태가 10프레임 계속되거나 눈높이가 평균+20픽셀을 넘으면 위험 조건입니다.
+3. 감지 1회: 경고음; 2회: 경고음 + **같은 산수 문제의 정답을 맞힐 때까지 반복**; 3회: 경고음 + **음량 기준을 넘을 때까지 반복**; 다음 감지는 **1회차로 복귀**합니다.
+4. 사용자가 확인한 음성 응답 인식 구간은 약 **10초**입니다. 당시 실험에서 안경·선글라스 착용 상태에서도 동작했습니다(보편적 검출률을 보장하지 않음).
+5. 경고/응답 도중 프레임 분석은 추가로 실행하지 않으며, 단계가 끝난 뒤 다시 검사합니다. 경고 후 1초 재감지를 무시합니다.
 
-- **눈 기반 졸음 감지 실험** 및 **독립된 음성 문제/TTS/STT 실험**: 원본 소스가 존재합니다.
-- **최종 발표의 통합 3단계 프로그램**: **원본만으로는 불가능**합니다. 차량 시연 당시 통합 `/home/pi/project/test.py`와 `decibel.py`가 확보되지 않았습니다.
-- `reconstruction/gaps/`: 누락된 3단계 상태 전환과 음량 수식의 **별도 추정 참고 코드**만 보유합니다. 원본을 대체하거나 통합 구동을 보장하지 않습니다.
+`config.ini`의 초기 측정 3초와 경고음 파일 순서 등 후기 대화 설정을 우선했습니다. 확보된 `test_v2.py` 초기 실험은 30초 측정이었으므로 **버전 차이**가 있습니다. 자세한 근거는 `docs/PROVENANCE.md`에 기록했습니다.
 
-## 확정한 동작 이해
-
-눈의 EAR와 위치로 판단하며 얼굴형 분류는 하지 않았습니다. 사용자는 안경·선글라스 착용 상태에서 작동함을 관찰했습니다. 음성 답변은 약 10초 동안 인식했고, 2단계 문제/3단계 음량 미충족은 해결할 때까지 반복하며 경고 흐름은 1→2→3→1로 순환했습니다. **이 경험 사실을 보편적인 인식 성능 검증으로 확대하지 않습니다.**
-
-## 문서
-
-- [`docs/ORIGINAL_VS_RECONSTRUCTED.md`](docs/ORIGINAL_VS_RECONSTRUCTED.md): **파일별 원본/재구성 경계와 증거 등급**
-- [`docs/vehicle-test-evidence-2023.md`](docs/vehicle-test-evidence-2023.md): 영상에서 확인된 실제 시험과 미확인 사항
-- [`docs/implementation-notes.md`](docs/implementation-notes.md): 코드 감사 기록
-- [`docs/security.md`](docs/security.md): 비공개 제외 자료
-- [`reconstruction/README.md`](reconstruction/README.md): 원본에 없는 최소 참고 코드
-
-## 로컬에서 하드웨어 없이 확인
+## 하드웨어 없이 코드 점검
 
 ```bash
-python3 -m unittest discover -s reconstruction/gaps/tests -v
+python3 -m unittest discover -s tests -v
+python3 main.py --demo
 ```
 
-위 7개 테스트는 **추정 흐름·수식만** 검사합니다. 2023년 원본의 실기 작동, Google Cloud 계정, 마이크·카메라 및 최종 발표 전체 통합 작동은 검증한 것이 아닙니다.
+`--demo`는 입력값·정답·음량 반응을 모의 생성합니다. **실제 카메라, 음성 녹음, TTS/STT 네트워크, 하드웨어 경고음을 테스트하지 않습니다.** 따라서 제품 안전성이나 실제 차량 동작을 증명하지 않습니다.
+
+## 의존성에 대한 기록
+
+실장에 필요한 Picamera2, OpenCV, dlib predictor 데이터, 마이크/스피커, 원본 WAV, Google Cloud 인증은 별도로 필요하며 저장소에 포함하지 않았습니다. 이 저장소는 **하드웨어 없는 코드 복원**을 목적으로 합니다. 실제 통합 실행은 검증하지 않았습니다.

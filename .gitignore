@@ -1,15 +1,15 @@
-# Private keys, project captures and generated audio
+# Hardware artifacts, secrets and generated files are intentionally excluded.
+__pycache__/
+*.py[cod]
+.venv/
+venv/
 .env
-.env.*
-!.env.example
 *.json
 *.pem
 *.key
 *.wav
 *.mp3
 *.mp4
+*.dat
 *.jpg
 *.png
-*.dat
-__pycache__/
-*.pyc
