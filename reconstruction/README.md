@@ -1,7 +1,19 @@
-# 대화 기반 복원본
+# 원본에 없는 부분만 최소 재구성
 
-- [`app/`](app/): **현재 기준 단일 통합 코드** — 시작점 `app/main.py`, 로직 테스트 `app/tests/`.
-- [`app/docs/TRACEABILITY.md`](app/docs/TRACEABILITY.md): 기능별 개발 대화·원본 근거와 2026년 추정 구분.
-- `../src/`: 2023년 당시의 **원본 실험 이력**(복원본에 중복 복사하지 않음).
+**원본 자체는 `../src/`에 있고, 이 폴더의 코드는 모두 2026년 추정 구현입니다.**
 
-이전 중복 구조 `2026-conversation-based/00_verified_originals`, `01_reference_refactor`, `04_reconstructed_application/scripts` 등은 기능별로 통합했습니다. 역사적 원본은 삭제하지 않았습니다. **현재 작업은 하드웨어 없이 코드만 복원하는 작업**입니다.
+- `gaps/stage_flow.py`: 최종 발표의 경고 단계 전환 및 재시도 **구조만** 표시. 원본 눈 감지·TTS/STT를 재작성하지 않음.
+- `gaps/decibel_formula.py`: 당시 대화에서 확인된 RMS → 프로그램 상대 음량 수식. 원본 차량 시험 `decibel.py`는 없음.
+- `gaps/tests/`: 위 두 코드의 순수 로직 검증만 진행.
+
+이 폴더에는 완전한 `main.py`가 없습니다. 원본만으로 2023년 최종 차량 시연 코드를 만들 수 있는 것처럼 보이게 하지 않기 위한 선택입니다. **인터페이스용 콜백은 실제 원본 실험 파일과 자동 연결되지 않습니다.**
+
+근거별 판정은 [`../docs/ORIGINAL_VS_RECONSTRUCTED.md`](../docs/ORIGINAL_VS_RECONSTRUCTED.md)를 확인하세요.
+
+### 코드만 검증
+
+```bash
+python3 -m unittest discover -s reconstruction/gaps/tests -v
+```
+
+안경/선글라스 경험, 약 10초 음성 답변, 문제·음량 무제한 재시도, 3단계 후 1단계 복귀는 사용자 설명에 근거합니다. 2023년 원본 10개는 단 한 줄도 수정하지 않았습니다.

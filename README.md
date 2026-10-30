@@ -1,61 +1,38 @@
-# Driver Drowsiness Detection — 2023 Project Archive
+# 졸음운전 예방 카메라 — 원본 우선 코드 보존
 
-> **Historical source archive.** 2023 Raspberry Pi camera-based eye-closure detection prototypes and separate voice-interaction experiments. **Not a ready-to-run safety device**, and a later 2023 vehicle-test recording documents combined camera detection, warning counts, a `Listening...` interface, and a decibel-measurement script. The exact integrated source version is missing, and a fully successful three-stage sequence is not established. The original Raspberry Pi is no longer available, so current execution has not been verified.
+**최종 발표자료를 기능/흐름의 최상위 기준으로, 2023년 확보한 소스 파일을 구현 근거로 사용합니다.** 2026년 추정 재구성은 원본이 없는 부분에만 최소한으로 둡니다. 하드웨어를 이용한 재현이나 실제 차량 안전성을 검증하는 작업이 아닙니다.
 
-## 개요
+## 무엇이 실제 원본인가?
 
-졸음운전을 감지하기 위한 카메라 프로토타입의 과거 개발 기록입니다. 라즈베리파이 카메라 프레임에서 dlib의 얼굴·68점 랜드마크 모델을 사용해 눈 위치 및 EAR(Eye Aspect Ratio)를 계산합니다. 별도 음성 기능 실험에서는 수학 문제를 음성으로 읽고 Google Cloud Speech-to-Text로 음성 답변을 인식하는 코드를 작성했습니다. 추가 확보된 당시 차량 시험 영상에서는 졸음 판별과 음성 입력 대기 및 데시벨 계산 경로를 하나의 Raspberry Pi 시험 환경에서 연계한 장면이 확인됐습니다.
+**`src/` 디렉터리의 Python 파일 10개만 2023년 보존 원본**입니다. 2023년 실험의 여러 시점과 목적을 반영하기 때문에 이름과 기능이 유사한 파일도 그대로 보존합니다. 기존 파일 내용은 수정하지 않았습니다.
 
-## 코드 구성
+- `src/eye_detection/test.py`, `test_v2.py`, `test3.py`: Picamera2/OpenCV/dlib 기반 얼굴·눈 랜드마크, EAR/눈 위치 계산, 카메라 시험.
+- `src/voice_experiments/test1.py`, `111.py`, `222.py`, `333.py`, `app.py`, `stt_test1.py`, `test2.py`: 녹음, 수학 문제, Google TTS/STT 등 음성 기능 실험.
 
-- `src/eye_detection/test.py`: Picamera2, dlib, OpenCV, 평균 EAR 기준 및 연속 눈 감김 계산의 초기 버전
-- `src/eye_detection/test_v2.py`: 초기 30초 평균 측정, EAR·눈 위치 임계값, `detected` 표시
-- `src/eye_detection/test3.py`: Picamera2 캡처 화면 출력 및 카메라 로그 메모
-- `src/voice_experiments/test1.py`: TTS 수학 문제 생성, 스트리밍 STT, 정답 판단과 안내 WAV 재생 시도
-- `src/voice_experiments/111.py`, `222.py`, `333.py`, `app.py`, `test2.py`, `stt_test1.py`: 녹음/TTS/STT 단위 시험 코드. `stt_test1.py`는 Google의 예제 기반입니다.
+**원본이 해결하는 역할은 다시 작성하지 않았습니다.** 이전 `reconstruction/app/`의 비전, 음성, 카메라, 오디오 재구현 및 종합 `main.py`는 기본 브랜치에서 제외했습니다.
 
-## 당시 프로젝트 역할 및 차량 시험 자료
+## 원본만으로 완성 가능한가?
 
-- 중간 발표 6번 슬라이드의 역할 분담: 영상 팀 김경욱·손무현 / **음성 팀 노상운·한상원**. 팀 내 세부 코딩 담당자는 추가 구분 필요.
-- 최종 발표는 1차 경고음, 2차 경고+음성 문제, 3차 경고+데시벨 테스트를 설계 흐름으로 제시합니다. 각 단계의 완전한 성공 여부를 단정하지 않습니다.
-- 정지 중·주행 중·야간 원본 영상에서 EAR·눈 위치 표시와 위험 판정이 확인되며, 일부 영상에서는 `Listening...` 및 데시벨 계산 로그가 나타납니다.
-- 영상에 보이는 통합 `test.py`(약 263줄), `decibel.py` 등은 현재 복구된 소스파일과 다릅니다. [차량 시험 증거 및 미확인 사항](docs/vehicle-test-evidence-2023.md)에 구분해 기록했습니다.
+- **눈 기반 졸음 감지 실험** 및 **독립된 음성 문제/TTS/STT 실험**: 원본 소스가 존재합니다.
+- **최종 발표의 통합 3단계 프로그램**: **원본만으로는 불가능**합니다. 차량 시연 당시 통합 `/home/pi/project/test.py`와 `decibel.py`가 확보되지 않았습니다.
+- `reconstruction/gaps/`: 누락된 3단계 상태 전환과 음량 수식의 **별도 추정 참고 코드**만 보유합니다. 원본을 대체하거나 통합 구동을 보장하지 않습니다.
 
-## 기술 스택
+## 확정한 동작 이해
 
-Python, Raspberry Pi OS, Raspberry Pi Camera Module, Picamera2, OpenCV, dlib, SciPy, NumPy; Google Cloud Text-to-Speech/Speech-to-Text, PyAudio, gTTS, playsound(음성 모듈).
+눈의 EAR와 위치로 판단하며 얼굴형 분류는 하지 않았습니다. 사용자는 안경·선글라스 착용 상태에서 작동함을 관찰했습니다. 음성 답변은 약 10초 동안 인식했고, 2단계 문제/3단계 음량 미충족은 해결할 때까지 반복하며 경고 흐름은 1→2→3→1로 순환했습니다. **이 경험 사실을 보편적인 인식 성능 검증으로 확대하지 않습니다.**
 
-## 동작 상태·제약
+## 문서
 
-- EAR은 눈 랜드마크의 수직 거리와 수평 거리의 비율로 계산합니다. `test_v2.py`에서는 30초간 평균을 구한 뒤 `EAR <= avg_EAR * 0.8`가 10프레임 이상 이어지거나 눈 위치 조건이 발생하면 `detected` 문구를 표시하도록 작성되어 있습니다.
-- **현재 공개된 2023년 원본 카메라 코드에는 WAV 경고음 또는 음성 문제 모듈을 직접 호출하는 통합 코드가 없습니다.** 다만 차량 시험 영상에서는 당시 더 긴 별도 프로그램에서 경고음 호출과 음성·데시벨 측정 기능을 실행한 화면이 확인됩니다. 그 버전의 원본이 없어 동일 환경 재현 및 전체 단계 정상 동작은 검증할 수 없습니다.
-- 초기 카메라 코드에 `cap.release()` 관련 오류 가능성이 있습니다(`cap` 미정의). 과거 코드를 임의 수정하지 않고 보존했습니다.
-- 음성 인식의 오인식, 루프 종료 조건, 자격증명 설정 등은 수정되지 않은 역사적 시험 상태입니다.
-- 필요한 `shape_predictor_68_face_landmarks.dat`(약 99.7MB)는 권리·용량을 고려해 포함하지 않았습니다. 당시 백업에서 존재를 확인했습니다.
-- Google Cloud 서비스 계정 JSON/개인 녹음·음성 및 시연 영상은 공개하지 않았습니다.
+- [`docs/ORIGINAL_VS_RECONSTRUCTED.md`](docs/ORIGINAL_VS_RECONSTRUCTED.md): **파일별 원본/재구성 경계와 증거 등급**
+- [`docs/vehicle-test-evidence-2023.md`](docs/vehicle-test-evidence-2023.md): 영상에서 확인된 실제 시험과 미확인 사항
+- [`docs/implementation-notes.md`](docs/implementation-notes.md): 코드 감사 기록
+- [`docs/security.md`](docs/security.md): 비공개 제외 자료
+- [`reconstruction/README.md`](reconstruction/README.md): 원본에 없는 최소 참고 코드
 
-[구현 검증 및 한계](docs/implementation-notes.md) · [차량 시험 자료](docs/vehicle-test-evidence-2023.md) · [보안/출처](docs/security.md)
+## 로컬에서 하드웨어 없이 확인
 
-## 통합 코드 복원본 (2026-10-31 정리)
+```bash
+python3 -m unittest discover -s reconstruction/gaps/tests -v
+```
 
-**하드웨어 없이 코드 구조와 로직을 복원하는 작업**입니다. 역사적 원본 실험 코드는 위의 `src/`에 그대로 보존하며, **현재 확인할 통합 진입점은 하나**입니다.
-
-- [단일 통합 구현: reconstruction/app/](reconstruction/app/README.md)
-- [기능별 출처·추정 및 원본 역할 구분](reconstruction/app/docs/TRACEABILITY.md)
-- [중복 정리 원칙과 폴더 안내](reconstruction/README.md)
-
-이전에 생성한 `reconstruction/2026-conversation-based/`의 **원본 중복 복사본·옛 감지 참고 구현·음성 기능 호출 래퍼·실기용 systemd 예시·자산 빈 폴더**는 정리했습니다. 보존해야 할 기존 `src/` 원본 10개와 `docs/`는 삭제하거나 변경하지 않았습니다(아래 별도 현황 문구 수정 제외).
-
-재구성 프로그램은 EAR·눈높이 변화, 3단계 경고, 수학 문제 TTS/STT, RMS 기반 음량 확인을 각 전담 모듈에서 한 번만 구현합니다. **유지 중인 코드의 21개 단위 테스트와 하드웨어 없는 3단계 시뮬레이션이 통과**했습니다. 물리적 카메라·마이크·스피커 및 실차 동작을 검증했다는 뜻은 아닙니다.
-
-## 2023년 최종발표 최우선 복원 규칙 (2026-10-31 갱신)
-
-**최종 발표자료의 작동원리(슬라이드 3)를 기능 및 성공/실패 분기의 최상위 근거**로 사용합니다. 개발 당시 원본(`src/`)의 EAR 수식·눈높이 판정·Google TTS/STT 음성 코드가 그다음 근거이며, 세부 구현이 누락된 부분에만 당시 대화와 사용자 회고를 적용합니다. 원본과 재구성 코드의 출처는 구분합니다.
-
-사용자가 실제 작동을 확인한 사항: **얼굴형이 아니라 눈의 크기(EAR)와 위치로 감지**했으며, 안경·선글라스 착용 상태에서도 정상 동작했습니다(정량적인 인식률 결과는 아님). 음성 답변은 약 **10초 동안 입력**받았고, **정답이 아니면 같은 문제를 해결할 때까지 반복**, **3단계 음량 미달 시에도 제한 없이 반복**, **3단계 완료 후 다음 경고는 1단계부터 다시 시작**합니다.
-
-[단일 복원 코드](reconstruction/app/README.md) · [발표자료·원본·추정 대응표](reconstruction/app/docs/TRACEABILITY.md)
-
-이후 2026년 통합 복원에 임의로 추가한 '3회 후 포기', '음성 녹음 5초', '정상 프레임을 관측해야 다음 경고 허용', Google API 요청별 10초 타임아웃은 제거했습니다. **Google TTS/STT 자체는 2023년 실제 사용 기술**이며, 네트워크 호출 시간과 마이크 인식 시간은 서로 다릅니다. 보존된 실제 2023년 원본 소스는 수정하지 않았습니다.
-
-통합 복원 프로그램은 하드웨어 없는 상태에서 **25개 단위 테스트와 3단계 상태 전환 시뮬레이션 통과**를 확인했습니다. 실제 카메라·마이크·Google 서비스 통합 수행이나 조건별 인식 정확도는 검증하지 않았습니다.
+위 7개 테스트는 **추정 흐름·수식만** 검사합니다. 2023년 원본의 실기 작동, Google Cloud 계정, 마이크·카메라 및 최종 발표 전체 통합 작동은 검증한 것이 아닙니다.
