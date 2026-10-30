@@ -1,8 +1,8 @@
 """Restore the final presentation's unlimited loudness retry branch.
 
 The scalar is 20*log10(raw PCM RMS/1), NOT calibrated physical dB SPL.
-Historical single-measurement parameters were 44.1kHz, 1024 sample chunks,
-about 5 seconds per measurement, threshold > 70 (development discussion).
+Historical decibel.py concatenated 5s of 44.1kHz mono PCM (1024-sample
+chunks), calculated one overall RMS, and used threshold >70.
 """
 from array import array
 from math import log10, sqrt
@@ -25,10 +25,16 @@ def raw_pcm_db(rms):
     return 20 * log10(max(float(rms), 1e-12) / 1.0)
 
 
-def _record_db_values(stream, seconds, rate, chunk):
-    count = max(1, round(seconds * rate / chunk))
-    return [raw_pcm_db(rms_int16_bytes(
-        stream.read(chunk, exception_on_overflow=False))) for _ in range(count)]
+def _record_whole_interval_db(stream, seconds, rate, chunk):
+    """2023-11-22 decibel.py: concatenate all PCM chunks, then calculate ONE RMS.
+
+    Averaging individual chunk dB levels is not equivalent to measuring the
+    RMS of the entire five-second recording. This mirrors the pasted original.
+    """
+    count = int(rate / chunk * seconds)
+    frames = [stream.read(chunk, exception_on_overflow=False)
+              for _ in range(count)]
+    return raw_pcm_db(rms_int16_bytes(b''.join(frames)))
 
 
 def measure_average_db(seconds=5.0, rate=44100, chunk=1024,
@@ -40,7 +46,7 @@ def measure_average_db(seconds=5.0, rate=44100, chunk=1024,
         try:
             stream = api.open(format=pyaudio.paInt16, channels=1, rate=rate,
                               input=True, frames_per_buffer=chunk)
-            values = _record_db_values(stream, seconds, rate, chunk)
+            level = _record_whole_interval_db(stream, seconds, rate, chunk)
         finally:
             if stream is not None:
                 stream.stop_stream()
@@ -49,12 +55,12 @@ def measure_average_db(seconds=5.0, rate=44100, chunk=1024,
     else:
         stream = stream_factory()
         try:
-            values = _record_db_values(stream, seconds, rate, chunk)
+            level = _record_whole_interval_db(stream, seconds, rate, chunk)
         finally:
             close = getattr(stream, 'close', None)
             if close:
                 close()
-    return sum(values) / len(values) if values else float('-inf')
+    return level
 
 
 def wait_for_loud_reaction(audio, threshold=70., seconds=5., rate=44100,
@@ -74,5 +80,6 @@ def wait_for_loud_reaction(audio, threshold=70., seconds=5., rate=44100,
         level = measure_fn(seconds, rate, chunk)
         print(f'[loudness attempt {attempt}] raw-PCM score={level:.2f}')
         if level > threshold:
+            audio.play('success.wav')  # observed in the 2023-11-22 decibel.py
             return True
         audio.play('da.wav')  # repeat prompt on insufficient volume

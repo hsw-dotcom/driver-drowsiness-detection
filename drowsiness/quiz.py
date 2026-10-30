@@ -38,6 +38,15 @@ def normalize_answer(s):
         return None
 
 
+def feedback_clip(transcript, correct):
+    """2023 test1.py: result1=correct, result2=wrong number, result3=non-number."""
+    if correct:
+        return 'result1.wav'
+    if normalize_answer(transcript) is None:
+        return 'result3.wav'
+    return 'result2.wav'
+
+
 def solve_question(question, answer, recognize_once, on_response=None):
     """Repeat the SAME problem; injectable recognizer enables hardware-free tests.
 
@@ -84,6 +93,8 @@ def run_quiz(record_seconds=10.0, backend='google', dry_run=False):
         folder = Path(directory)
         (folder / 'question.wav').write_bytes(response.audio_content)
         audio = Audio(folder, backend='playsound')
+        feedback_audio = Audio(Path(__file__).resolve().parents[1] / 'assets' / 'audio',
+                               backend='playsound')
 
         def recognize_once(_question):
             audio.play('question.wav')
@@ -108,5 +119,6 @@ def run_quiz(record_seconds=10.0, backend='google', dry_run=False):
             # The original quiz replays the question after wrong/non-numeric
             # responses. Original result1/2/3 WAVs are not in the repository.
             print('[quiz]', repr(transcript), 'correct' if correct else 'repeat')
+            feedback_audio.play(feedback_clip(transcript, correct))
 
         return solve_question(question, answer, recognize_once, on_response)

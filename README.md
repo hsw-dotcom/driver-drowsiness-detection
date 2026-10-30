@@ -83,3 +83,8 @@ python3 main.py --demo
 ## 자동 오프라인 검증
 
 [GitHub Actions — Offline reconstructed logic tests](https://github.com/hsw-dotcom/driver-drowsiness-detection/actions/workflows/offline-checks.yml)는 Python 단위 테스트 및 모의 3단계 실행을 자동화합니다. **2023년 실차 시스템의 동작 결과나 실제 안전성·성능 검증과는 별개**입니다.
+
+
+## 2023년 프로젝트 대화 재대조 (2026-10-31)
+
+[개발 대화 재대조 및 반영 내역](docs/CONVERSATION_AUDIT_2023.md)을 확인하세요. 5초 녹음 **전체의 RMS를 한 번 계산**하도록 음량 함수를 수정하고, 당시 음성 시험에서 사용한 `result1.wav`·`result2.wav`·`result3.wav` 및 음량 성공 시 `success.wav` 호출을 복원했습니다. 음원 파일은 포함하지 않았으며 **2023년 최종 실행 원문을 발견했다는 의미가 아닙니다**. 초기 실험 버전과 10초 중복실행 가드 등 최종 채택 여부가 불분명한 내용은 코드에 강제하지 않고 문서에 구분했습니다.

@@ -29,7 +29,7 @@ class TestLoudness(unittest.TestCase):
             return 80 if len(attempts)>=7 else 50
         self.assertTrue(wait_for_loud_reaction(speaker,measure_fn=read))
         self.assertEqual(len(attempts),7)
-        self.assertEqual(speaker.clips,['da.wav']*6)
+        self.assertEqual(speaker.clips,['da.wav']*6+['success.wav'])
 
     def test_fake_microphone(self):
         self.assertAlmostEqual(measure_average_db(seconds=.01,rate=100,chunk=1,stream_factory=lambda:FakeStream(4000)),raw_pcm_db(4000))
