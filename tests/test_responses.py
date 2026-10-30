@@ -1,4 +1,4 @@
-"""Regression tests for 2023 conversation-backed logic (no hardware/API)."""
+"""Offline regression tests for audio levels and quiz feedback."""
 import math
 import unittest
 from array import array
@@ -26,7 +26,7 @@ class FakeAudio:
         self.clips.append(name)
 
 
-class ConversationBackedTests(unittest.TestCase):
+class ResponseTests(unittest.TestCase):
     def test_whole_recording_rms_not_average_of_log_chunks(self):
         # Two equally-sized chunks: one silent, one with PCM amplitude 6000.
         # Whole-recording RMS is 6000/sqrt(2), not the mean of dB(0) and dB(6000).
