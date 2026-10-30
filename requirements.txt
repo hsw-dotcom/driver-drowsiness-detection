@@ -1,10 +1,8 @@
-# Raspberry Pi OS Picamera2 should normally be installed through apt, not pip.
-# sudo apt install python3-picamera2 python3-opencv python3-dlib python3-pyaudio
-# Python dependencies for new integration; install matching RPi OS packages if possible.
-# Minimum Python 3.10 (tested without hardware only).
+# Raspberry Pi OS: python3-picamera2, python3-opencv, python3-dlib,
+# python3-pyaudio 등은 시스템 패키지로 설치하는 환경을 가정합니다.
 numpy
 scipy
 sounddevice
 google-cloud-texttospeech
 google-cloud-speech
-playsound==1.2.2  # historical playback library
+playsound==1.2.2

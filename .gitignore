@@ -1,8 +1,6 @@
-# Hardware artifacts, secrets and generated files are intentionally excluded.
 __pycache__/
 *.py[cod]
 .venv/
-venv/
 .env
 *.json
 *.pem
@@ -11,5 +9,3 @@ venv/
 *.mp3
 *.mp4
 *.dat
-*.jpg
-*.png

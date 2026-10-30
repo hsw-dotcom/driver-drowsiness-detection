@@ -1,118 +1,104 @@
-"""2026 reconstructed integrated drowsiness camera (NOT original 2023 deployment).
-
-Only one maintained code version remains. Demo mode checks logic offline;
-optional device mode exists for code completeness but has NOT been verified.
-"""
+"""졸음운전 예방 카메라 - 2023년 최종 발표를 바탕으로 재구성한 프로그램."""
 import argparse
-from pathlib import Path
-import sys
 import time
 
-from drowsiness.config import Config
-from drowsiness.vision import DrowsinessLogic,eye_metrics
-from drowsiness.audio import Audio
-from drowsiness.quiz import run_quiz
-from drowsiness.loudness import wait_for_loud_reaction
-from drowsiness.stages import WarningStages
+from config import AUDIO_DIR, MODEL_FILE, FRAME_SIZE, PIXEL_FORMAT, FRAME_RATE
+from detection import EyeDetector, eye_values
+from voice import ask_until_correct
+from decibel import confirm_loudness
 
-HERE=Path(__file__).resolve().parent
 
-def options():
-    p=argparse.ArgumentParser(description=__doc__)
-    p.add_argument('--config',type=Path,default=HERE/'config.ini')
-    p.add_argument('--no-display',action='store_true')
-    p.add_argument('--demo',action='store_true',help='no camera/audio/mic/cloud; run a scripted state trace')
-    return p.parse_args()
+def play_audio(filename):
+    from playsound import playsound
+    path = AUDIO_DIR / filename
+    if not path.is_file():
+        raise FileNotFoundError(f'경고음 파일 없음: {path}')
+    playsound(str(path))
 
-def make_stages(cfg,simulation):
-    audio=Audio(HERE/'assets'/'audio',cfg.sound_backend,dry_run=simulation)
-    return WarningStages(audio,cfg,
-        quiz_fn=lambda:run_quiz(cfg.quiz_record_seconds,cfg.quiz_backend,dry_run=simulation),
-        loudness_fn=lambda:wait_for_loud_reaction(audio,cfg.loudness_threshold,cfg.loudness_seconds,
-                  cfg.loudness_rate,cfg.loudness_chunk,dry_run=simulation),
-        sleep_fn=(lambda seconds:None) if simulation else time.sleep)
 
-def make_logic(cfg):
-    return DrowsinessLogic(cfg.calibration_seconds,cfg.ear_ratio,
-        cfg.closed_frames,cfg.eye_offset_px,cfg.cooldown_seconds)
+def run_stage(stage, play=play_audio, quiz=ask_until_correct, loud=confirm_loudness):
+    """졸음 감지 시 공통 경고음 후 1→2→3→1 순서로 진행."""
+    if stage not in (1, 2, 3):
+        raise ValueError('잘못된 경고 단계')
+    play('detect.wav')
+    if stage == 1:
+        play('wa.wav')
+        play('warning.wav')
+    elif stage == 2:
+        play('da.wav')
+        play('danger.wav')
+        quiz(play)
+    else:
+        play('da.wav')
+        play('decibel.wav')
+        loud(play)
+    return stage % 3 + 1
 
-def demo(cfg):
-    logic=make_logic(cfg)
-    stages=make_stages(cfg,True)
-    now=0.0
-    for _ in range(3):
-        print(f'[demo calibration] {logic.update(now,.3,200).status}')
-        now+=max(.1,cfg.calibration_seconds/3)
-    now=max(now,cfg.calibration_seconds+.1)
-    for stage in range(4):
-        for frame in range(cfg.closed_frames):
-            state=logic.update(now, .08, 200)
-            now+=.05
-            if state.trigger:
-                event=stages.on_alert()
-                print(f'[demo alert] stage {event.stage} => {event.outcome}')
-                logic.finish_alert(now)
+
+def demo():
+    detector = EyeDetector()
+    for second in (0., 1., 2., 3.):
+        detector.update(second, 0.30, 200)
+    stage = 1
+    def print_clip(name):
+        print('  재생:', name)
+    for _ in range(4):
+        when = detector.ignore_until + 4
+        for i in range(10):
+            triggered = detector.update(when + i * 0.05, 0.10, 200)
+            if triggered:
+                print('감지 →', stage, '단계')
+                stage = run_stage(stage, print_clip, lambda _: print('  문제 정답 (모의)'),
+                                  lambda _: print('  음량 통과 (모의)'))
+                detector.after_warning(when + i * 0.05)
                 break
-        # Require recovery + cooldown before next event.
-        now+=cfg.cooldown_seconds+.1
-        print('[demo recovery]',logic.update(now,.3,200).status)
-    print('[demo finished] verified sequence: 1 -> 2 -> 3 -> 1')
+        else:
+            raise AssertionError('졸음 감지 모의 실행 실패')
+    assert stage == 2
+    print('단계 순환: 1 → 2 → 3 → 1 확인 (하드웨어 미사용)')
 
-def run_real(cfg,no_display):
+
+def run_camera():
     import cv2
     import dlib
-    from drowsiness.camera import open_camera,convert_for_detector,convert_for_display
-    model=HERE/'shape_predictor_68_face_landmarks.dat'
-    if not model.is_file():
-        raise FileNotFoundError(f'Missing dlib predictor model: {model} (not included in this code-only archive)')
-    predictor=dlib.shape_predictor(str(model))
-    face_detector=dlib.get_frontal_face_detector()
-    stages=make_stages(cfg,False)
-    logic=make_logic(cfg)
-    print('[run] reconstructed code; unverified on original Raspberry Pi')
-    with open_camera(cfg) as camera:
-        try:
-            while True:
-                # During synchronous stage execution below, no extra OpenCV detection
-                # occurs. Camera remains streaming, capture resumes afterwards.
-                frame=camera.capture_array()
-                gray=convert_for_detector(frame,cfg.pixel_format)
-                faces=face_detector(gray,0)
-                metrics=None
-                ear=eye_y=None
-                if faces:
-                    # Face detection only supplies eye landmarks; face shape is not
-                    # used as a drowsiness score. Single-driver assumption here.
-                    face=faces[0]
-                    metrics=eye_metrics(predictor(gray,face))
-                    ear,eye_y=metrics[:2]
-                now=time.monotonic()
-                state=logic.update(now,ear,eye_y)
-                if state.trigger:
-                    print(f'[detected] {state.reason}, EAR={ear:.3f}, eye_y={eye_y:.1f}')
-                    reaction=stages.on_alert()
-                    print(f'[stage {reaction.stage}] {reaction.outcome} {reaction.detail}')
-                    logic.finish_alert(time.monotonic())
-                if not no_display:
-                    color=convert_for_display(frame,cfg.pixel_format)
-                    if metrics:
-                        for px,py in metrics[2]+metrics[3]:
-                            cv2.circle(color,(px,py),1,(0,255,0),-1)
-                    label=f'{state.status}/{state.reason} EAR={ear:.3f}' if ear is not None else f'{state.status}/{state.reason}'
-                    cv2.putText(color,label,(10,30),cv2.FONT_HERSHEY_SIMPLEX,.55,(255,255,255),2)
-                    cv2.putText(color,f'Warnings={stages.warning_count} Closed={state.closed_frames}',
-                                (10,60),cv2.FONT_HERSHEY_SIMPLEX,.55,(255,255,255),2)
-                    cv2.imshow('Drowsiness reconstruction',color)
-                    if cv2.waitKey(1)==27:break
-        except KeyboardInterrupt: pass
-        finally:
-            if not no_display: cv2.destroyAllWindows()
+    from picamera2 import Picamera2
+    if not MODEL_FILE.is_file():
+        raise FileNotFoundError(f'dlib 68점 모델 파일이 없습니다: {MODEL_FILE}')
 
-def main():
-    args=options()
-    try: cfg=Config.load(args.config)
-    except Exception as exc: raise SystemExit(str(exc)) from exc
-    if args.demo: demo(cfg)
-    else: run_real(cfg,args.no_display)
+    face_detector = dlib.get_frontal_face_detector()
+    predictor = dlib.shape_predictor(str(MODEL_FILE))
+    camera = Picamera2()
+    camera.configure(camera.create_preview_configuration(
+        main={'size': FRAME_SIZE, 'format': PIXEL_FORMAT}))
+    camera.set_controls({'FrameRate': FRAME_RATE})
+    camera.start()
+    detection = EyeDetector()
+    stage = 1
+    try:
+        while True:
+            frame = camera.capture_array()
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            faces = face_detector(gray)
+            ear, eye_y = (None, None)
+            if faces:
+                ear, eye_y = eye_values(predictor(gray, faces[0]))
+            if detection.update(time.monotonic(), ear, eye_y):
+                print('졸음 감지:', stage, '단계')
+                try:
+                    stage = run_stage(stage)
+                finally:
+                    detection.after_warning(time.monotonic())
+            cv2.imshow('Drowsiness Camera', frame)
+            if cv2.waitKey(1) == 27:
+                break
+    finally:
+        camera.stop()
+        camera.close()
+        cv2.destroyAllWindows()
 
-if __name__=='__main__': main()
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--demo', action='store_true', help='장치 없는 단계 흐름 확인')
+    args = parser.parse_args()
+    demo() if args.demo else run_camera()
